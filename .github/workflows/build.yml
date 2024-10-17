@@ -1,119 +1,24 @@
-name: Build, Test, and Release Ripple Project
+name: Build
 
 on:
   push:
     branches:
-      - '**'
+      - master
   pull_request:
     branches:
-      - '**'
-  workflow_dispatch:
+      - master
 
 jobs:
   build:
+
     runs-on: windows-latest
 
     steps:
-      # Verifica o código do repositório
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout do código
+      uses: actions/checkout@v3
 
-      # Configura o ambiente para .NET (substitua a versão conforme necessário)
-      - name: Set up .NET environment
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '6.x'  # Substitua pela versão correta do .NET
+    - name: Restaurar pacotes NuGet
+      run: nuget restore Ripple.sln
 
-      # Instalação de dependências NuGet
-      - name: Install NuGet packages
-        run: nuget restore Ripple/Ripple.csproj
-
-      # Compila o projeto
-      - name: Build project
-        run: dotnet build Ripple/Ripple.csproj --configuration Release --no-restore
-
-      # Gera os artefatos compilados
-      - name: Save build outputs
-        run: |
-          mkdir -p output
-          cp -r Ripple/bin/Release/* output/
-      
-      # Faz o upload dos binários como artefatos
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ripple-build
-          path: output/
-
-  # Etapa de build para x64
-  build-x64:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up .NET environment
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '6.x'
-
-      - name: Install NuGet packages
-        run: nuget restore Ripple/Ripple.csproj
-
-      # Compila o projeto para x64
-      - name: Build project for x64
-        run: dotnet build Ripple/Ripple.csproj --configuration Release --no-restore /p:Platform=x64
-
-      # Gera os artefatos compilados para x64
-      - name: Save x64 build outputs
-        run: |
-          mkdir -p output-x64
-          cp -r Ripple/bin/x64/Release/* output-x64/
-      
-      # Faz o upload dos binários como artefatos x64
-      - name: Upload artifact (x64)
-        uses: actions/upload-artifact@v3
-        with:
-          name: ripple-build-x64
-          path: output-x64/
-
-  release:
-    # Dependência para que os dois trabalhos de build sejam bem-sucedidos
-    needs: [build, build-x64]
-    runs-on: ubuntu-latest
-    
-    steps:
-      # Verifica o código do repositório (necessário para criar uma release)
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Cria uma nova release no GitHub
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.sha }}
-          release_name: "Release ${{ github.sha }}"
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Anexa o artifact (compilação padrão) à release
-      - name: Upload build artifact to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: output/
-          asset_name: ripple-build.zip
-          asset_content_type: application/zip
-
-      # Anexa o artifact (compilação x64) à release
-      - name: Upload x64 build artifact to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: output-x64/
-          asset_name: ripple-build-x64.zip
-          asset_content_type: application/zip
+    - name: Compilar solução
+      run: msbuild Ripple.sln /p:Configuration=Release /p:Platform="Any CPU"
