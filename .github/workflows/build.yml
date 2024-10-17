@@ -26,11 +26,11 @@ jobs:
 
       # Instalação de dependências NuGet
       - name: Install NuGet packages
-        run: nuget restore Ripple.sln
+        run: nuget restore Ripple/Ripple.csproj
 
-      # Compila o projeto usando dotnet build em vez de msbuild
-      - name: Build solution
-        run: dotnet build Ripple.sln --configuration Release --no-restore
+      # Compila o projeto
+      - name: Build project
+        run: dotnet build Ripple/Ripple.csproj --configuration Release --no-restore
 
       # Gera os artefatos compilados
       - name: Save build outputs
@@ -59,17 +59,17 @@ jobs:
           dotnet-version: '6.x'
 
       - name: Install NuGet packages
-        run: nuget restore Ripple.sln
+        run: nuget restore Ripple/Ripple.csproj
 
-      # Compila o projeto para x64 usando dotnet build
-      - name: Build solution for x64
-        run: dotnet build Ripple.sln --configuration Release --framework net6.0 --runtime win-x64 --no-restore
+      # Compila o projeto para x64
+      - name: Build project for x64
+        run: dotnet build Ripple/Ripple.csproj --configuration Release --no-restore /p:Platform=x64
 
       # Gera os artefatos compilados para x64
       - name: Save x64 build outputs
         run: |
           mkdir -p output-x64
-          cp -r Ripple/bin/Release/net6.0/* output-x64/
+          cp -r Ripple/bin/x64/Release/* output-x64/
       
       # Faz o upload dos binários como artefatos x64
       - name: Upload artifact (x64)
