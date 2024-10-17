@@ -22,15 +22,15 @@ jobs:
       - name: Set up .NET environment
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.x'
+          dotnet-version: '6.x'  # Substitua pela versão correta do .NET
 
       # Instalação de dependências NuGet
       - name: Install NuGet packages
         run: nuget restore Ripple.sln
 
-      # Compila o projeto
+      # Compila o projeto usando dotnet build em vez de msbuild
       - name: Build solution
-        run: msbuild Ripple.sln /p:Configuration=Release
+        run: dotnet build Ripple.sln --configuration Release --no-restore
 
       # Gera os artefatos compilados
       - name: Save build outputs
@@ -61,14 +61,15 @@ jobs:
       - name: Install NuGet packages
         run: nuget restore Ripple.sln
 
+      # Compila o projeto para x64 usando dotnet build
       - name: Build solution for x64
-        run: msbuild Ripple.sln /p:Configuration=Release /p:Platform=x64
+        run: dotnet build Ripple.sln --configuration Release --framework net6.0 --runtime win-x64 --no-restore
 
       # Gera os artefatos compilados para x64
       - name: Save x64 build outputs
         run: |
           mkdir -p output-x64
-          cp -r Ripple/bin/x64/Release/* output-x64/
+          cp -r Ripple/bin/Release/net6.0/* output-x64/
       
       # Faz o upload dos binários como artefatos x64
       - name: Upload artifact (x64)
